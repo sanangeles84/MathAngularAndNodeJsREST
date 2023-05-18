@@ -1,0 +1,122 @@
+<html ng-app="calc">
+
+<head>
+    <title>Calculator</title>
+    <!-- Add JQuery + Bootstrap JS / CSS + AngularJS-->
+    <script src="./vendor/angular/angular.js"></script>
+    <link rel="stylesheet" type="text/css" href="./calc.css">
+    <!-- Our Script -->
+    <script>
+        var calcApp = angular.module('calc', []);
+
+        calcApp.controller('MainController', ['$scope', 'mathWebService', function ($scope, mathWebService) {
+            var vm = {};
+            vm.valueShow = "0",
+
+
+                vm.numberClick = function (element) {
+                    if (this.valueShow != "0" || (this.valueShow == "0" && element.currentTarget.value == "."))
+                        this.valueShow += element.currentTarget.value;
+                    else
+                        this.valueShow = element.currentTarget.value;
+                };
+                vm.operatorClick = function (element) {
+                    if (this.valueShow.includes('+') || this.valueShow.includes('-') || this.valueShow.includes('*') || this.valueShow.includes('/'))
+                        this.evaluate(element.currentTarget.value);
+                    else
+                        this.valueShow += element.currentTarget.value;
+                };
+                vm.clearClick = function (element) {
+                    this.valueShow = this.valueShow.substring(0, this.valueShow.length - 1);
+                    if (!this.valueShow)
+                        this.valueShow = "0";
+
+                };
+                vm.evaluate = function (afterEvalStr) {
+                    //this.valueShow = eval(this.valueShow) + "";
+                    var op;
+                    if(this.valueShow.includes('+'))
+                        op = '+';
+                    else if(this.valueShow.includes('-'))
+                        op = '-';
+                    else if(this.valueShow.includes('*'))
+                        op = '*';
+                    else if(this.valueShow.includes('/'))
+                        op = '/';
+                    else return;
+
+                    var num1 = this.valueShow.split(op)[0], num2 = this.valueShow.split(op)[1];
+                    op = op.replace('+', 'sum').replace('-', 'subtract').replace('*', 'multiply').replace('/', 'divide');
+
+                    mathWebService.calc(op,num1,num2).then(function (response) {
+                        vm.valueShow = response.data.result.toString() + (afterEvalStr);
+                        //vm.list = response.data.items;
+                        //this.valueShow = 
+                    });
+                };
+            
+
+            $scope.vm = vm;
+        }]);
+
+        calcApp.service('mathWebService', ['$http', function ($http) {
+            var root = 'https://mathservice.sanangeles.repl.co/operations/8IrQofhWDbuiaoF8Gs7BNKpz7YXSKB0dQzYoTZ7IV3iIHKUjF4q52RVC47I5SXRX/';
+            return {
+                calc: function (op, num1, num2) {
+                    return $http.get(root+op+'/'+num1+'/'+num2);
+                }
+            }
+        }]);
+
+    </script>
+</head>
+
+<body ng-controller="MainController">
+    <!-- Our HTML -->
+    <!--
+    <label>Type your name:</label>
+    <input type="text" ng-model="vm.name" ng-change="vm.copyName()" />
+    <button class="btn btn-danger" ng-click="vm.clearName()">Clear Name</button>
+    <div><textarea width="100px" ng-model="vm.name2"></span></div>
+        -->
+    <div align="right"><a href="/rest/">REST API</a></div>
+    <div align="center">
+        <table align="center">
+            <tbody>
+                <tr>
+                    <td colspan="4"><input ng-model="vm.valueShow" id="valueshow" type="text" value="0" readonly />
+                </tr>
+                <tr>
+                    <td><input class="bgcolornumber" ng-click="vm.numberClick($event)" type="button" value="1" />
+                    <td><input class="bgcolornumber" ng-click="vm.numberClick($event)" type="button" value="2" />
+                    <td><input class="bgcolornumber" ng-click="vm.numberClick($event)" type="button" value="3" />
+                    <td><input class="bgoperationcolor" ng-click="vm.operatorClick($event)" type="button" value="/" />
+                </tr>
+                <tr>
+                    <td><input class="bgcolornumber" ng-click="vm.numberClick($event)" type="button" value="4" />
+                    <td><input class="bgcolornumber" ng-click="vm.numberClick($event)" type="button" value="5" />
+                    <td><input class="bgcolornumber" ng-click="vm.numberClick($event)" type="button" value="6" />
+                    <td><input class="bgoperationcolor" ng-click="vm.operatorClick($event);" type="button" value="*" />
+                </tr>
+                <tr>
+                    <td><input class="bgcolornumber" ng-click="vm.numberClick($event)" type="button" value="7" />
+                    <td><input class="bgcolornumber" ng-click="vm.numberClick($event)" type="button" value="8" />
+                    <td><input class="bgcolornumber" ng-click="vm.numberClick($event)" type="button" value="9" />
+                    <td><input class="bgoperationcolor" ng-click="vm.operatorClick($event)" type="button" value="-" />
+                </tr>
+                <tr>
+                    <td><input class="bgcolornumber" ng-click="vm.numberClick($event)" type="button" value="0" />
+                    <td><input class="bgcolornumber" ng-click="vm.numberClick($event)" type="button" value="." />
+                    <td><input class="bgclear" ng-click="vm.clearClick($event)" type="button" value="C" />
+                    <td><input class="bgoperationcolor" ng-click="vm.operatorClick($event)" type="button" value="+" />
+                </tr>
+                <tr>
+                    <td colspan="4"><input class="equal" ng-click="vm.evaluate('')" type="button" value="=" />
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>
